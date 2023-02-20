@@ -1,0 +1,30 @@
+# docker-compose.yml
+
+version: '3.7'
+
+volumes:
+  pg_data: {}
+
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: athenian_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    command: uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 5000
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - 5000:5000
+    environment:
+      - DSN_URL=postgresql+asyncpg://postgres:postgres@db:5432/athenian_db
+      - DSN_SYNC_URL=postgresql://postgres:postgres@db:5432/athenian_db
